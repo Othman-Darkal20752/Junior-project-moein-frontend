@@ -1,0 +1,79 @@
+.lecture-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f6f8fa;
+  border: 1px solid #d1d9e0;
+  border-radius: 6px;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.lecture-item:hover {
+  background: #ffffff;
+  border-color: #0969da;
+}
+
+.lecture-item-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.lecture-item-content {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lecture-item-name {
+  margin: 0 0 0.25rem 0;
+  color: #0969da;
+  font-size: 0.875rem;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.lecture-item-date {
+  margin: 0;
+  color: #656d76;
+  font-size: 0.75rem;
+}
+
+.lecture-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.lecture-summary-btn.pending {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.lecture-summary-btn.READY {
+  border: 1px solid rgba(27, 31, 36, 0.15);
+}
+
+.lecture-summary-btn.failed {
+  background-color: #fff5f5;
+  color: #cf222e;
+  border: 1px solid rgba(27, 31, 36, 0.15);
+}
+
+@media (max-width: 768px) {
+  .lecture-item {
+    flex-wrap: wrap;
+  }
+
+  .lecture-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+

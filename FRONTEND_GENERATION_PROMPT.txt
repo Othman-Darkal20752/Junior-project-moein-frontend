@@ -1,0 +1,750 @@
+================================================================================
+FRONTEND GENERATION PROMPT FOR STUDENT COURSE MANAGEMENT SYSTEM
+================================================================================
+
+PROJECT OVERVIEW
+================================================================================
+
+This is a microservices-based Student Course Management System built with Django REST Framework. The system allows students to:
+- Register and authenticate
+- Create and manage courses
+- Upload lecture materials (PDF, Word, PowerPoint files)
+- View and organize their courses and lectures
+
+The backend consists of two separate Django services:
+1. Account_User_service - Handles user authentication and registration
+2. Course_Lecture_service - Handles course and lecture management
+
+Both services use JWT (JSON Web Tokens) for authentication with a shared secret key.
+
+================================================================================
+ARCHITECTURE & TECHNICAL STACK
+================================================================================
+
+Backend:
+- Django REST Framework
+- MySQL databases (separate for each service)
+- JWT authentication (HS256 algorithm, 24-hour expiration)
+- CORS enabled for cross-origin requests
+
+Frontend Requirements:
+- React (functional components with hooks)
+- Vite (build tool)
+- HTML5 & CSS3 (modern, responsive design)
+- Axios or Fetch API for HTTP requests
+- React Router for navigation
+- State management (Context API or useState/useReducer)
+
+Base URLs (assume these are configurable):
+- Account Service: http://localhost:8000/api/
+- Course Service: http://localhost:8001/api/
+
+================================================================================
+AUTHENTICATION MECHANISM
+================================================================================
+
+JWT Token Format:
+- Header: Authorization: Bearer <token>
+- Token contains: user_id (as 'sub'), username, iat, exp
+- Token expiration: 24 hours (86400 seconds)
+- Algorithm: HS256
+
+Token Storage:
+- Store JWT token in localStorage or sessionStorage after login
+- Include token in Authorization header for all protected API calls
+- Handle token expiration and redirect to login when token is invalid
+
+================================================================================
+DATA MODELS
+================================================================================
+
+1. USER MODEL (Account Service)
+   - user_id: UUID (primary key)
+   - username: String (unique, max 150 chars)
+   - email: String (unique, email format)
+   - phone: String (optional, max 10 chars)
+   - password: String (hashed, not returned in API)
+   - created_at: DateTime
+   - updated_at: DateTime
+
+2. STUDENT MODEL (Account Service)
+   - student_id: UUID (primary key)
+   - user_id: OneToOne relationship with User
+   - created_at: DateTime
+   - updated_at: DateTime
+   - Note: Automatically created when user signs up
+
+3. COURSE MODEL (Course Service)
+   - course_id: UUID (primary key)
+   - student_id: UUID (references Student.student_id)
+   - course_name: String (max 200 chars)
+   - course_teacher: String (optional, max 100 chars)
+   - created_at: DateTime
+   - updated_at: DateTime
+
+4. LECTURE MODEL (Course Service)
+   - lecture_id: UUID (primary key)
+   - student_id: UUID (references Student.student_id)
+   - course_id: ForeignKey to Course
+   - lecture_name: String (max 200 chars)
+   - created_at: DateTime
+   - updated_at: DateTime
+
+================================================================================
+API ENDPOINTS - ACCOUNT SERVICE (Port 8000)
+================================================================================
+
+BASE URL: http://localhost:8000/api/
+
+1. USER REGISTRATION (SIGNUP)
+   Endpoint: POST /signup/
+   Authentication: Not required (AllowAny)
+   Request Body (JSON):
+   {
+     "username": "john_doe",
+     "email": "john@example.com",
+     "phone": "1234567890",  // Optional
+     "password": "password123",
+     "password_confirm": "password123"
+   }
+   
+   Success Response (201 Created):
+   {
+     "message": "User created successfully. Please login to continue.",
+     "user": {
+       "user_id": "uuid-string",
+       "username": "john_doe",
+       "email": "john@example.com",
+       "phone": "1234567890"
+     },
+     "student": {
+       "student_id": "uuid-string"
+     }
+   }
+   
+   Error Response (400 Bad Request):
+   {
+     "username": ["Username already exists"],  // OR
+     "email": ["Email already exists"],        // OR
+     "password_confirm": ["Passwords don't match"],  // OR
+     "password": ["This field is required."]  // OR other validation errors
+   }
+   
+   Validation Rules:
+   - Password minimum length: 6 characters
+   - Passwords must match
+   - Username must be unique
+   - Email must be unique and valid format
+   - Phone is optional
+
+2. USER LOGIN
+   Endpoint: POST /login/
+   Authentication: Not required (AllowAny)
+   Request Body (JSON):
+   {
+     "username": "john_doe",
+     "password": "password123"
+   }
+   
+   Success Response (200 OK):
+   {
+     "message": "Login successful",
+     "token": "jwt-token-string",
+     "user": {
+       "user_id": "uuid-string",
+       "username": "john_doe",
+       "email": "john@example.com",
+       "phone": "1234567890"
+     },
+     "student": {
+       "student_id": "uuid-string"
+     }
+   }
+   
+   Error Response (401 Unauthorized):
+   {
+     "non_field_errors": ["Invalid username or password"]
+   }
+   
+   Important: Store the token from this response for subsequent API calls.
+
+================================================================================
+API ENDPOINTS - COURSE SERVICE (Port 8001)
+================================================================================
+
+BASE URL: http://localhost:8001/api/
+
+All endpoints require JWT authentication via Authorization header:
+Authorization: Bearer <token>
+
+COURSE MANAGEMENT ENDPOINTS:
+
+1. GET ALL COURSES (for authenticated student)
+   Endpoint: GET /courses/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   
+   Success Response (200 OK):
+   {
+     "count": 2,
+     "courses": [
+       {
+         "course_id": "uuid-string",
+         "course_name": "Mathematics",
+         "course_teacher": "Dr. Smith",
+         "lectures": [
+           {
+             "lecture_id": "uuid-string",
+             "student_id": "uuid-string",
+             "course_id": "uuid-string",
+             "lecture_name": "Introduction to Algebra",
+             "created_at": "2024-01-15T10:30:00Z"
+           }
+         ],
+         "created_at": "2024-01-10T08:00:00Z"
+       }
+     ]
+   }
+   
+   Error Response (401 Unauthorized):
+   {
+     "error": "Authentication required"
+   }
+
+2. CREATE NEW COURSE
+   Endpoint: POST /courses/create/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   Request Body (JSON):
+   {
+     "course_name": "Mathematics",
+     "course_teacher": "Dr. Smith"  // Optional
+   }
+   
+   Success Response (201 Created):
+   {
+     "course_id": "uuid-string",
+     "course_name": "Mathematics",
+     "course_teacher": "Dr. Smith",
+     "lectures": [],
+     "created_at": "2024-01-10T08:00:00Z"
+   }
+   
+   Error Response (400 Bad Request):
+   {
+     "course_name": ["This field is required."]
+   }
+   
+   Error Response (401 Unauthorized):
+   {
+     "error": "Authentication required"
+   }
+
+3. GET SPECIFIC COURSE
+   Endpoint: GET /courses/<course_id>/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   URL Parameter: course_id (UUID)
+   
+   Success Response (200 OK):
+   {
+     "course_id": "uuid-string",
+     "course_name": "Mathematics",
+     "course_teacher": "Dr. Smith",
+     "lectures": [
+       {
+         "lecture_id": "uuid-string",
+         "student_id": "uuid-string",
+         "course_id": "uuid-string",
+         "lecture_name": "Introduction to Algebra",
+         "created_at": "2024-01-15T10:30:00Z"
+       }
+     ],
+     "created_at": "2024-01-10T08:00:00Z"
+   }
+   
+   Error Response (404 Not Found):
+   {
+     "error": "Course not found"
+   }
+   
+   Error Response (401 Unauthorized):
+   {
+     "error": "Authentication required"
+   }
+
+4. UPDATE COURSE
+   Endpoint: PUT /courses/<course_id>/edit/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   URL Parameter: course_id (UUID)
+   Request Body (JSON) - all fields optional:
+   {
+     "course_name": "Advanced Mathematics",
+     "course_teacher": "Dr. Johnson"
+   }
+   
+   Success Response (200 OK):
+   {
+     "course_id": "uuid-string",
+     "course_name": "Advanced Mathematics",
+     "course_teacher": "Dr. Johnson",
+     "lectures": [...],
+     "created_at": "2024-01-10T08:00:00Z"
+   }
+   
+   Error Response (404 Not Found):
+   {
+     "error": "Course not found"
+   }
+   
+   Error Response (401 Unauthorized):
+   {
+     "error": "Authentication required"
+   }
+
+5. DELETE COURSE
+   Endpoint: DELETE /courses/<course_id>/delete/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   URL Parameter: course_id (UUID)
+   
+   Success Response (200 OK):
+   {
+     "message": "Course deleted successfully"
+   }
+   
+   Error Response (404 Not Found):
+   {
+     "error": "Course not found"
+   }
+   
+   Error Response (401 Unauthorized):
+   {
+     "error": "Authentication required"
+   }
+
+LECTURE MANAGEMENT ENDPOINTS:
+
+6. UPLOAD LECTURE
+   Endpoint: POST /courses/<course_id>/lectures/upload/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   Content-Type: multipart/form-data
+   URL Parameter: course_id (UUID)
+   Request Body (FormData):
+   - lecture_name: "Introduction to Algebra" (string, required)
+   - file: <file> (required, must be PDF, DOCX, or PPTX)
+   
+   Allowed File Types:
+   - application/pdf (.pdf)
+   - application/vnd.openxmlformats-officedocument.wordprocessingml.document (.docx)
+   - application/vnd.openxmlformats-officedocument.presentationml.presentation (.pptx)
+   
+   Success Response (201 Created):
+   {
+     "message": "Lecture uploaded successfully",
+     "lecture": {
+       "lecture_id": "uuid-string",
+       "student_id": "uuid-string",
+       "course_id": "uuid-string",
+       "lecture_name": "Introduction to Algebra",
+       "created_at": "2024-01-15T10:30:00Z"
+     },
+     "file_saved_as": "uuid-filename.pdf"
+   }
+   
+   Error Responses:
+   - 401 Unauthorized: {"error": "Authentication required"}
+   - 404 Not Found: {"error": "Course not found or access denied"}
+   - 400 Bad Request: {"error": "No file submitted"}
+   - 400 Bad Request: {"error": "Only PDF, Word, and PowerPoint files are allowed"}
+   - 400 Bad Request: {"lecture_name": ["This field is required."]}
+
+7. UPDATE LECTURE NAME
+   Endpoint: PUT /courses/<course_id>/lectures/<lecture_id>/update-name/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   URL Parameters: course_id (UUID), lecture_id (UUID)
+   Request Body (JSON):
+   {
+     "lecture_name": "Advanced Algebra Concepts"
+   }
+   
+   Success Response (200 OK):
+   {
+     "message": "Lecture name updated successfully",
+     "old_name": "Introduction to Algebra",
+     "new_name": "Advanced Algebra Concepts",
+     "lecture": {
+       "lecture_id": "uuid-string",
+       "student_id": "uuid-string",
+       "course_id": "uuid-string",
+       "lecture_name": "Advanced Algebra Concepts",
+       "created_at": "2024-01-15T10:30:00Z"
+     }
+   }
+   
+   Error Responses:
+   - 401 Unauthorized: {"error": "Authentication required"}
+   - 404 Not Found: {"error": "Course not found or access denied"}
+   - 404 Not Found: {"error": "Lecture not found or access denied"}
+   - 400 Bad Request: {"error": "lecture_name field is required"}
+   - 400 Bad Request: {"error": "New name is identical to current name"}
+   - 400 Bad Request: {"error": "Lecture name \"...\" already exists in this course"}
+
+8. DELETE LECTURE
+   Endpoint: DELETE /courses/<course_id>/lectures/<lecture_id>/delete/
+   Authentication: Required (JWT token)
+   Headers: Authorization: Bearer <token>
+   URL Parameters: course_id (UUID), lecture_id (UUID)
+   
+   Success Response (200 OK):
+   {
+     "message": "Lecture deleted successfully from database and storage",
+     "deleted_lecture": "Introduction to Algebra",
+     "course": "Mathematics",
+     "file_deleted": true
+   }
+   
+   Error Responses:
+   - 401 Unauthorized: {"error": "Authentication required"}
+   - 404 Not Found: {"error": "Course not found or access denied"}
+   - 404 Not Found: {"error": "Lecture not found or access denied"}
+
+================================================================================
+FRONTEND REQUIREMENTS & SCENARIOS
+================================================================================
+
+AUTHENTICATION FLOW:
+1. Sign Up Page
+   - Form fields: username, email, phone (optional), password, password_confirm
+   - Client-side validation: passwords match, email format, password min 6 chars
+   - On success: Show success message, redirect to login page
+   - On error: Display validation errors from API response
+   - Handle errors: username exists, email exists, passwords don't match
+
+2. Login Page
+   - Form fields: username, password
+   - On success: Store JWT token (localStorage/sessionStorage), store user info, redirect to dashboard
+   - On error: Display "Invalid username or password" message
+   - Token expiration: Handle 401 responses, clear token, redirect to login
+
+3. Protected Routes
+   - All course/lecture pages require authentication
+   - Check for token on route access
+   - If no token or invalid token, redirect to login
+   - Include token in Authorization header for all API calls
+
+DASHBOARD/COURSE LIST PAGE:
+1. Display all courses for authenticated user
+   - Show course name, teacher, number of lectures, created date
+   - Empty state: "No courses yet. Create your first course!"
+   - Loading state while fetching
+   - Error handling for API failures
+
+2. Create Course Button/Modal
+   - Form: course_name (required), course_teacher (optional)
+   - On success: Refresh course list or add to list
+   - On error: Display validation errors
+
+3. Course Cards/List Items
+   - Click to view course details
+   - Edit button (opens edit modal/form)
+   - Delete button (with confirmation dialog)
+   - Show lecture count
+
+COURSE DETAIL PAGE:
+1. Display course information
+   - Course name, teacher, created date
+   - Edit course button (opens edit form)
+   - Delete course button (with confirmation)
+
+2. Lectures List
+   - Display all lectures for the course
+   - Show lecture name, created date
+   - Empty state: "No lectures yet. Upload your first lecture!"
+   - Loading state
+
+3. Upload Lecture Button/Modal
+   - Form: lecture_name (text input), file (file input)
+   - File input: Accept only .pdf, .docx, .pptx
+   - Show file name after selection
+   - Client-side validation: file type, file size (suggest max 50MB)
+   - Upload progress indicator
+   - On success: Refresh lectures list
+   - On error: Display error message (file type, no file, etc.)
+
+4. Lecture Actions
+   - Edit lecture name (inline or modal)
+   - Delete lecture (with confirmation dialog)
+   - Show file type icon/indicator
+
+EDIT COURSE PAGE/MODAL:
+1. Pre-fill form with current course data
+2. Allow editing course_name and course_teacher
+3. Save button: Update course via PUT request
+4. Cancel button: Close without saving
+5. Error handling for validation errors
+
+DELETE CONFIRMATIONS:
+1. Delete Course Confirmation
+   - Warning: "Are you sure you want to delete this course? This will also delete all lectures in this course."
+   - Confirm/Cancel buttons
+
+2. Delete Lecture Confirmation
+   - Warning: "Are you sure you want to delete this lecture? This action cannot be undone."
+   - Confirm/Cancel buttons
+
+NAVIGATION:
+1. Navigation Bar
+   - Logo/Brand name
+   - User info (username) or dropdown
+   - Logout button
+   - Links: Dashboard (courses list), Profile (optional)
+
+2. Routing
+   - /login - Login page
+   - /signup - Sign up page
+   - /dashboard or / - Courses list (protected)
+   - /courses/:courseId - Course detail page (protected)
+   - Redirect / to /dashboard if authenticated, to /login if not
+
+ERROR HANDLING:
+1. Network Errors
+   - Display user-friendly error messages
+   - Retry mechanism for failed requests
+   - Handle timeout errors
+
+2. Authentication Errors (401)
+   - Clear stored token
+   - Redirect to login page
+   - Show message: "Session expired. Please login again."
+
+3. Validation Errors
+   - Display field-specific error messages
+   - Highlight invalid form fields
+   - Show general error messages for non-field errors
+
+4. Not Found Errors (404)
+   - Show "Resource not found" message
+   - Provide navigation back to dashboard
+
+UI/UX REQUIREMENTS:
+1. Modern, Clean Design
+   - Responsive layout (mobile, tablet, desktop)
+   - Professional color scheme
+   - Clear typography
+   - Consistent spacing and padding
+
+2. Loading States
+   - Loading spinners/skeletons for async operations
+   - Disable buttons during API calls
+   - Show progress for file uploads
+
+3. Success Messages
+   - Toast notifications or inline messages
+   - Auto-dismiss after 3-5 seconds
+   - Clear success indicators
+
+4. Form Validation
+   - Real-time validation feedback
+   - Required field indicators
+   - Password strength indicator (optional)
+   - Email format validation
+
+5. File Upload UI
+   - Drag-and-drop file upload area
+   - File preview/name display
+   - File size display
+   - Remove file option before upload
+
+6. Empty States
+   - Friendly messages for empty lists
+   - Call-to-action buttons
+   - Illustrations or icons
+
+7. Accessibility
+   - Keyboard navigation support
+   - ARIA labels where appropriate
+   - Focus indicators
+   - Screen reader friendly
+
+================================================================================
+TECHNICAL IMPLEMENTATION NOTES
+================================================================================
+
+1. API Client Setup
+   - Create axios instance or fetch wrapper with base URLs
+   - Interceptor to add Authorization header to all requests
+   - Interceptor to handle 401 errors globally
+   - Error handling middleware
+
+2. State Management
+   - Auth context for user info and token
+   - Course context or state for course list
+   - Local state for forms and UI state
+
+3. Token Management
+   - Store token in localStorage (persists) or sessionStorage (session only)
+   - Check token validity before API calls
+   - Clear token on logout
+   - Handle token expiration gracefully
+
+4. File Upload
+   - Use FormData for multipart/form-data requests
+   - Show upload progress (if possible)
+   - Validate file type and size before upload
+   - Handle large files appropriately
+
+5. UUID Handling
+   - All IDs are UUIDs (strings)
+   - Use UUIDs in URL parameters
+   - Display shortened UUIDs in UI (optional, first 8 chars)
+
+6. Date Formatting
+   - Format created_at dates for display (e.g., "Jan 15, 2024")
+   - Use relative time for recent items (e.g., "2 days ago")
+
+7. CORS Configuration
+   - Backend has CORS enabled
+   - Ensure frontend makes requests to correct ports (8000, 8001)
+   - Handle CORS errors if they occur
+
+8. Environment Variables
+   - Create .env file for API base URLs
+   - Example:
+     VITE_ACCOUNT_API_URL=http://localhost:8000/api
+     VITE_COURSE_API_URL=http://localhost:8001/api
+
+================================================================================
+TESTING SCENARIOS TO COVER
+================================================================================
+
+1. User Registration
+   - Successful registration
+   - Username already exists
+   - Email already exists
+   - Passwords don't match
+   - Missing required fields
+   - Invalid email format
+
+2. User Login
+   - Successful login
+   - Invalid username
+   - Invalid password
+   - Missing credentials
+
+3. Course Management
+   - Create course successfully
+   - View all courses
+   - View specific course
+   - Update course
+   - Delete course
+   - Access course that doesn't exist (404)
+   - Access course of another user (404)
+
+4. Lecture Management
+   - Upload lecture successfully (PDF, DOCX, PPTX)
+   - Upload invalid file type
+   - Upload without file
+   - Update lecture name
+   - Delete lecture
+   - View lectures in course
+   - Access lecture that doesn't exist (404)
+
+5. Authentication
+   - Access protected route without token (redirect to login)
+   - Access protected route with invalid token (redirect to login)
+   - Token expiration handling
+   - Logout functionality
+
+6. Error Handling
+   - Network errors
+   - Server errors (500)
+   - Validation errors
+   - Not found errors (404)
+   - Unauthorized errors (401)
+
+================================================================================
+ADDITIONAL FEATURES (OPTIONAL BUT RECOMMENDED)
+================================================================================
+
+1. Search/Filter
+   - Search courses by name
+   - Filter courses by teacher
+   - Search lectures within a course
+
+2. Sorting
+   - Sort courses by name, date created
+   - Sort lectures by name, date created
+
+3. Pagination
+   - If course/lecture lists become large, implement pagination
+
+4. File Preview
+   - Show file type icon
+   - Link to download/view file (if backend provides endpoint)
+
+5. User Profile
+   - Display user information
+   - Edit profile (if backend supports)
+
+6. Notifications
+   - Toast notifications for all actions
+   - Success/error messages
+
+7. Responsive Design
+   - Mobile-first approach
+   - Tablet and desktop layouts
+   - Touch-friendly buttons on mobile
+
+================================================================================
+PROJECT STRUCTURE SUGGESTION
+================================================================================
+
+src/
+  components/
+    auth/
+      Login.jsx
+      Signup.jsx
+    courses/
+      CourseList.jsx
+      CourseCard.jsx
+      CourseDetail.jsx
+      CourseForm.jsx
+    lectures/
+      LectureList.jsx
+      LectureItem.jsx
+      LectureUpload.jsx
+      LectureForm.jsx
+    common/
+      Navbar.jsx
+      LoadingSpinner.jsx
+      ErrorMessage.jsx
+      ConfirmDialog.jsx
+  contexts/
+    AuthContext.jsx
+    CourseContext.jsx (optional)
+  services/
+    api.js (API client setup)
+    authService.js
+    courseService.js
+    lectureService.js
+  utils/
+    tokenUtils.js
+    dateUtils.js
+    validation.js
+  App.jsx
+  main.jsx
+  routes.jsx (or use React Router)
+  styles/
+    main.css
+    components.css
+
+================================================================================
+END OF PROMPT
+================================================================================
+
+Please generate a complete React front-end application using Vite that implements all the above requirements, scenarios, and API integrations. The application should be production-ready with proper error handling, loading states, and a modern, responsive UI design.
+

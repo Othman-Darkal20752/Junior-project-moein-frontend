@@ -1,0 +1,226 @@
+/* ====== Container ====== */
+.my-summary-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+.my-summary-container h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #111827;
+}
+
+/* ====== Grid ====== */
+.summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* ====== Card ====== */
+.summary-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(245, 247, 250, 0.95)
+  );
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.06),
+    0 4px 10px rgba(0, 0, 0, 0.04);
+  padding: 1.75rem 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* ====== Header ====== */
+.summary-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.summary-card-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.summary-course-title {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* ====== Actions ====== */
+.summary-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.summary-toggle-btn {
+  border: none;
+  background: #e5e7eb;
+  color: #111827;
+  font-size: 0.85rem;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.summary-toggle-btn:hover {
+  background: #111827;
+  color: #ffffff;
+  transform: rotate(180deg);
+}
+
+/* Delete button – hidden until hover */
+.summary-delete-btn {
+  border: none;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.25s ease;
+}
+
+.summary-card:hover .summary-delete-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.summary-delete-btn:hover {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+/* ====== Content ====== */
+.summary-card-content {
+  margin-top: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.summary-lecture-text {
+  font-size: 0.98rem;
+  line-height: 1.85;
+  color: #1f2937;
+  white-space: pre-wrap;
+}
+
+/* ====== Empty ====== */
+.summary-empty {
+  text-align: center;
+  color: #6b7280;
+  font-size: 1rem;
+  margin-top: 4rem;
+}
+
+/* ====== Animations ====== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ====== Mobile ====== */
+@media (max-width: 768px) {
+  .my-summary-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .summary-card {
+    padding: 1.5rem;
+  }
+
+  .summary-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summary-actions {
+    align-self: flex-end;
+  }
+}
+
+.summary-markdown {
+  line-height: 1.8;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+/* Headings */
+.summary-markdown h1,
+.summary-markdown h2,
+.summary-markdown h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  color: #1f3c88;
+}
+
+.summary-markdown h3 {
+  font-size: 1.15rem;
+}
+
+/* Bold */
+.summary-markdown strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Lists */
+.summary-markdown ul,
+.summary-markdown ol {
+  margin: 0.75rem 0 0.75rem 1.25rem;
+}
+
+.summary-markdown li {
+  margin-bottom: 0.4rem;
+}
+
+/* Paragraphs */
+.summary-markdown p {
+  margin-bottom: 0.75rem;
+}
+
+/* Code (لو طلع) */
+.summary-markdown code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Blockquote (لو استخدمه النموذج) */
+.summary-markdown blockquote {
+  border-left: 4px solid #1f3c88;
+  padding-left: 1rem;
+  color: #374151;
+  background: #f9fafb;
+  margin: 1rem 0;
+}

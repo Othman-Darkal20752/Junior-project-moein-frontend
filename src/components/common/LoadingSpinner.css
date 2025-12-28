@@ -1,0 +1,37 @@
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+.spinner {
+  background-image: url('../../assest/hourglass.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  background-position: center;
+  animation: hourglass-rotate 2s linear infinite;
+}
+
+.loading-spinner.small .spinner {
+  width: 24px;
+  height: 24px;
+}
+
+.loading-spinner.medium .spinner {
+  width: 40px;
+  height: 40px;
+}
+
+.loading-spinner.large .spinner {
+  width: 60px;
+  height: 60px;
+}
+
+@keyframes hourglass-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
